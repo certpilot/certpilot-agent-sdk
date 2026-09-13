@@ -8,6 +8,10 @@ the agent it claims to be.
 go get github.com/certpilot/certpilot-agent-sdk
 ```
 
+Current release: **v0.1.0**. The CertPilot core and its agent both build against
+it with no `replace` directive, which is the only real test of whether this is
+published or merely copied.
+
 ## Why this is published
 
 **An agent does not have to be *the* agent.** The Go binary CertPilot ships is
