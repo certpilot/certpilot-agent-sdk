@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: build and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - run: go build ./...
+      - run: go vet ./...
+      # TestTheDocumentedVectorsStillHold and TestTheVectorsAreActuallyInTheDocument
+      # are the reason this job matters more than its size suggests: they are
+      # what stops SIGNING.md drifting from the code it describes, and that
+      # document is the only thing a second implementation has to work from.
+      - run: go test ./...
+
+      - name: gofmt
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+
+      # An untidy go.mod means the module graph in the repository is not the one
+      # a consumer gets from `go get`, and this module exists to be got.
+      - name: go.mod is tidy
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
