@@ -25,13 +25,27 @@
 // body, so none of those can be altered in flight and a signature captured from
 // one request cannot be reused on another.
 //
-// It does **not** prevent an identical request being replayed inside the
-// tolerance window. That is a deliberate omission rather than an oversight: a
-// nonce would have to be checked against something shared by every replica, and
-// a nonce checked in one replica's memory is decoration — it implies a property
-// that does not hold across a deployment of two. Decoration in a security
-// mechanism is worse than its absence, because people rely on it. The window is
-// the real bound, and it is short.
+// What it does not do on its own is stop an identical request being sent twice
+// inside the tolerance window. Nothing in this package can: the core refuses a
+// replay, and it needs storage shared by every replica to do it, which is the
+// core's to have and not an SDK's.
+//
+// That refusal needs no new header and no protocol version, because a nonce was
+// already being sent. Ed25519 is deterministic, so two identical requests carry
+// identical signatures, and a signature is unique to the method, path,
+// timestamp and body it covers. Storing the signature is the nonce store.
+//
+// This has a consequence for anybody writing a client, and it is the reason to
+// say so here rather than only in the core: **a retry must re-sign with a fresh
+// timestamp.** Re-sending the bytes of a previous attempt re-sends its
+// signature, and on a guarded endpoint the core refuses it as a replay of your
+// own earlier request. Idempotent reports — heartbeat, inventory,
+// installations, deployment results — are exempt, so a retried heartbeat after
+// a network blip still works.
+//
+// SIGNING.md in this repository is the full contract, written so an agent can
+// be implemented in another language without reading this file. Its section 6
+// covers replay and the retry rule.
 package agentauth
 
 import (
