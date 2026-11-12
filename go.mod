@@ -8,4 +8,4 @@
 // agent can be implemented without reading any of this Go.
 module github.com/certpilot/certpilot-agent-sdk
 
-go 1.26.6
+go 1.26.11
